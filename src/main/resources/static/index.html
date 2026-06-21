@@ -3,166 +3,558 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>세투연 행사 운영 플랫폼 MVP</title>
+  <title>세투연 행사 운영 플랫폼 - Premium Light Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; background: #f6f7fb; color: #202124; }
-    header { padding: 20px 28px; background: #111827; color: white; }
-    main { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; padding: 20px; }
-    section { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
-    h1 { margin: 0; font-size: 24px; }
-    h2 { margin-top: 0; font-size: 18px; }
-    label { display: block; margin-top: 10px; font-size: 13px; font-weight: 700; }
-    input, textarea, select, button { box-sizing: border-box; width: 100%; margin-top: 6px; padding: 9px; border: 1px solid #c7ccd1; border-radius: 6px; font-size: 14px; }
-    button { cursor: pointer; border: 0; background: #2563eb; color: white; font-weight: 700; }
-    button.secondary { background: #4b5563; }
-    button.danger { background: #dc2626; }
-    pre { overflow: auto; background: #111827; color: #d1d5db; padding: 12px; border-radius: 6px; min-height: 120px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .hint { color: #666; font-size: 13px; line-height: 1.4; }
+    :root {
+      --bg-dark: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --danger: #ef4444;
+      --danger-hover: #dc2626;
+      --success: #10b981;
+      --success-hover: #059669;
+      --border: #e2e8f0;
+      
+      /* Right Sidebar specific */
+      --log-bg: #0f172a;
+      --log-card: #1e293b;
+      --log-text: #34d399;
+      --log-text-muted: #94a3b8;
+    }
+    body {
+      margin: 0; font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main);
+      display: flex; height: 100vh; overflow: hidden;
+    }
+    * { box-sizing: border-box; }
+    
+    /* Left Sidebar (Auth) */
+    .left-sidebar {
+      width: 320px; background: var(--bg-card); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; padding: 20px; overflow-y: auto;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.02); z-index: 10;
+    }
+    .left-sidebar h1 { font-size: 18px; font-weight: 700; color: var(--primary); margin-bottom: 24px; text-align: center; }
+    .auth-box { background: var(--bg-dark); padding: 16px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); }
+    .auth-box h2 { font-size: 12px; color: var(--text-muted); margin-top: 0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;}
+    
+    /* Right Sidebar (Log) - Developer Mode */
+    .right-sidebar {
+      width: 400px; background: var(--log-bg); border-left: 1px solid var(--log-card);
+      display: flex; flex-direction: column; padding: 20px; overflow-y: auto;
+      box-shadow: -2px 0 10px rgba(0,0,0,0.2); z-index: 10; color: var(--log-text-muted);
+    }
+    .right-sidebar h2 { font-size: 14px; color: #fff; margin-top: 0; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between;}
+    #logBox {
+      flex: 1; background: var(--log-card); color: var(--log-text); padding: 16px; border-radius: 8px;
+      font-family: 'Consolas', monospace; font-size: 12px; overflow-y: auto; white-space: pre-wrap;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.4); line-height: 1.5; border: 1px solid #334155;
+    }
+    .log-entry { margin-bottom: 4px; padding-bottom: 4px; border-bottom: 1px dashed #334155; }
+    .log-entry:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    input, select, textarea {
+      width: 100%; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main);
+      padding: 10px; border-radius: 6px; margin-bottom: 12px; font-family: 'Inter'; font-size: 13px;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,0.2); }
+    button {
+      width: 100%; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer;
+      background: var(--primary); color: white; transition: all 0.2s; font-size: 13px;
+    }
+    button:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    button.danger { background: var(--danger); }
+    button.danger:hover { background: var(--danger-hover); }
+    button.success { background: var(--success); }
+    button.success:hover { background: var(--success-hover); }
+    button.outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); }
+    button.outline:hover { background: var(--bg-card-hover); }
+    button.log-btn { background: #334155; color: #fff; border: 1px solid #475569; width: auto; padding: 6px 12px; font-size: 11px;}
+    button.log-btn:hover { background: #475569; }
+
+    /* Main Area */
+    main { flex: 1; padding: 32px; overflow-y: auto; position: relative; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .header h2 { font-size: 24px; font-weight: 700; margin: 0; }
+    .header button { width: auto; padding: 10px 20px; }
+
+    /* Grid */
+    .event-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+    .event-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+      transition: all 0.3s; position: relative; display: flex; flex-direction: column;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .event-card:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.06); border-color: var(--primary); }
+    .event-badge {
+      position: absolute; top: 16px; right: 16px; padding: 4px 10px; border-radius: 20px;
+      font-size: 10px; font-weight: 700; background: var(--primary); color: white;
+    }
+    .event-card h3 { font-size: 18px; margin: 0 0 8px 0; padding-right: 60px; color: var(--text-main); }
+    .event-card p { font-size: 13px; color: var(--text-muted); margin: 4px 0; }
+    .event-card .desc { margin: 12px 0; color: var(--text-main); flex: 1; line-height: 1.5; font-size: 14px; background: var(--bg-dark); padding: 10px; border-radius: 6px; }
+    
+    .card-section { margin-top: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-dark); }
+    .card-section h4 { margin: 0 0 8px 0; font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    
+    .event-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+    .event-actions.full { grid-template-columns: 1fr; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center;
+      z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px;
+      width: 500px; max-width: 90%; transform: scale(0.95); transition: transform 0.2s;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    }
+    .modal-overlay.active .modal { transform: scale(1); }
+    .modal h3 { margin-top: 0; font-size: 20px; border-bottom: 1px solid var(--border); padding-bottom: 12px; margin-bottom: 20px; }
+    .modal-footer { display: flex; gap: 12px; margin-top: 24px; }
+    
+    /* List Items (Applicants, Attendances, Feedbacks) */
+    .list-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px; border: 1px solid var(--border); background: var(--bg-dark); border-radius: 8px; margin-bottom: 8px;
+    }
+    .list-info strong { display: block; font-size: 14px; color: var(--text-main); }
+    .list-info span { font-size: 11px; color: var(--primary); display: inline-block; padding: 2px 6px; border-radius: 4px; background: #e0e7ff; margin-top: 4px; font-weight: bold; }
+    .list-info .sub-text { color: var(--text-muted); font-size: 12px; font-weight: normal; background: transparent; padding: 0; margin-top: 4px; display: block; }
+    .list-actions { display: flex; gap: 6px; }
+    .list-actions button { width: auto; padding: 6px 12px; font-size: 11px; margin: 0; }
   </style>
 </head>
 <body>
-<header>
-  <h1>세투연 행사 운영 플랫폼 MVP</h1>
-  <p class="hint">시연 흐름: 로그인 -> 행사 생성 -> 행사 신청 -> 승인/반려 -> 출석 -> 피드백 -> 대시보드</p>
-</header>
+
+<aside class="left-sidebar">
+  <h1>SISC Platform MVP</h1>
+  
+  <div class="auth-box">
+    <h2>🔑 로그인 <span id="loginStatus" style="float:right; color:var(--success); font-weight:normal; text-transform:none;">(미로그인)</span></h2>
+    <input id="loginEmail" value="admin" placeholder="아이디">
+    <input id="loginPassword" type="password" value="0000" placeholder="비밀번호">
+    <button onclick="login()">로그인 실행</button>
+  </div>
+
+  <div class="auth-box">
+    <h2>✨ 회원가입</h2>
+    <input id="signupName" value="홍길동" placeholder="이름">
+    <input id="signupEmail" value="newuser" placeholder="아이디">
+    <input id="signupPassword" type="password" value="0000" placeholder="비밀번호">
+    <select id="signupRole">
+        <option value="MEMBER">일반 회원 (MEMBER)</option>
+        <option value="STAFF">운영진 (STAFF)</option>
+        <option value="ADMIN">관리자 (ADMIN)</option>
+    </select>
+    <button class="success" onclick="signup()">회원가입 실행</button>
+  </div>
+</aside>
+
 <main>
-  <section>
-    <h2>1. 로그인</h2>
-    <p class="hint">샘플 계정: admin@setuyeon.kr / staff@setuyeon.kr / member@setuyeon.kr, 비밀번호 password123!</p>
-    <label>이메일</label>
-    <input id="loginEmail" value="admin@setuyeon.kr">
-    <label>비밀번호</label>
-    <input id="loginPassword" type="password" value="password123!">
-    <button onclick="login()">로그인</button>
-  </section>
-
-  <section>
-    <h2>2. 행사 생성 / 조회</h2>
-    <label>행사명</label>
-    <input id="eventTitle" value="모의투자대회 설명회">
-    <label>설명</label>
-    <textarea id="eventDescription">세투연 모의투자대회 참가 방법과 리서치 제출 방식을 안내합니다.</textarea>
-    <label>장소</label>
-    <input id="eventLocation" value="세종대학교 학생회관 세미나실">
-    <label>일시</label>
-    <input id="eventDateTime" value="2026-07-03T19:00:00">
-    <label>정원</label>
-    <input id="eventCapacity" type="number" value="50">
-    <div class="row">
-      <button onclick="createEvent()">행사 생성</button>
-      <button class="secondary" onclick="getEvents()">행사 조회</button>
+  <div class="header">
+    <h2>🌟 행사 대시보드</h2>
+    <div style="display:flex; gap:12px;">
+        <button class="outline" onclick="loadEvents()">새로고침</button>
+        <button class="success" onclick="openEventModal()">+ 새 행사 생성</button>
     </div>
-  </section>
-
-  <section>
-    <h2>3. 상태 / 신청 / 승인</h2>
-    <label>행사 ID</label>
-    <input id="eventId" value="1">
-    <label>신청 ID</label>
-    <input id="applicationId" value="1">
-    <div class="row">
-      <button onclick="updateEventStatus('OPEN')">모집중 전환</button>
-      <button onclick="applyEvent()">행사 신청</button>
-    </div>
-    <div class="row">
-      <button onclick="getApplications()">신청자 조회</button>
-      <button onclick="approveApplication()">승인</button>
-    </div>
-    <button class="danger" onclick="rejectApplication()">반려</button>
-  </section>
-
-  <section>
-    <h2>4. 출석 / 피드백</h2>
-    <label>출석 코드</label>
-    <input id="attendanceCode">
-    <div class="row">
-      <button onclick="issueAttendanceCode()">코드 발급</button>
-      <button onclick="checkIn()">출석</button>
-    </div>
-    <label>평점</label>
-    <input id="rating" type="number" value="5">
-    <label>피드백</label>
-    <textarea id="feedbackContent">기업분석 사례가 실제 투자 의사결정과 연결되어 유익했습니다.</textarea>
-    <button onclick="createFeedback()">피드백 작성</button>
-  </section>
-
-  <section>
-    <h2>5. 대시보드</h2>
-    <button onclick="getDashboard()">대시보드 조회</button>
-    <p class="hint">ADMIN 계정으로 로그인해야 조회됩니다.</p>
-  </section>
-
-  <section>
-    <h2>응답</h2>
-    <pre id="result">API 응답이 여기에 표시됩니다.</pre>
-  </section>
+  </div>
+  
+  <div class="event-grid" id="eventGrid">
+    <!-- Events will be populated here -->
+  </div>
 </main>
+
+<aside class="right-sidebar">
+  <h2>
+      <span>💻 Developer API Log</span>
+      <button class="log-btn" onclick="document.getElementById('logBox').innerHTML=''">Clear</button>
+  </h2>
+  <div id="logBox">대기 중...<br></div>
+</aside>
+
+<!-- Event Modal (Create / Edit) -->
+<div class="modal-overlay" id="eventModal">
+  <div class="modal">
+    <h3 id="eventModalTitle">행사 생성</h3>
+    <input type="hidden" id="modalEventId">
+    <label>행사명</label>
+    <input id="mTitle" placeholder="예: 모의투자대회 설명회">
+    <label>설명</label>
+    <textarea id="mDesc" rows="3"></textarea>
+    <label>장소</label>
+    <input id="mLoc" placeholder="예: 대양AI센터">
+    <label>일시</label>
+    <input id="mDate" type="datetime-local">
+    <label>정원</label>
+    <input id="mCap" type="number" value="50">
+    <div class="modal-footer">
+      <button class="outline" onclick="closeModal('eventModal')">취소</button>
+      <button class="success" onclick="saveEvent()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Generic List Modal (Applicants, Attendances, Feedbacks) -->
+<div class="modal-overlay" id="listModal">
+  <div class="modal" style="width: 550px;">
+    <h3 id="listModalTitle">목록 조회</h3>
+    <div id="listModalContent" style="margin-bottom: 20px; min-height: 100px; max-height: 60vh; overflow-y: auto;">
+        <!-- List items go here -->
+    </div>
+    <button class="outline" onclick="closeModal('listModal')">닫기</button>
+  </div>
+</div>
 
 <script>
   let token = localStorage.getItem("setuyeonToken") || "";
+  if(token) document.getElementById("loginStatus").innerText = "(인증됨)";
+
+  let lastLogContainer = null;
+
+  function startLog(msg) {
+    lastLogContainer = null; // 강제로 새 그룹 생성
+    logAction(msg);
+  }
+
+  function logAction(msg, isError=false) {
+    const box = document.getElementById("logBox");
+    
+    if (!lastLogContainer) {
+        const timeStr = new Date().toLocaleTimeString();
+        
+        const group = document.createElement('div');
+        group.style.marginBottom = "12px";
+        group.style.borderBottom = "1px dashed #334155";
+        group.style.paddingBottom = "8px";
+        
+        const timeSpan = document.createElement('div');
+        timeSpan.style.color = "#64748b";
+        timeSpan.style.marginBottom = "4px";
+        timeSpan.innerText = "[" + timeStr + "]";
+        group.appendChild(timeSpan);
+        
+        lastLogContainer = document.createElement('div');
+        group.appendChild(lastLogContainer);
+        
+        box.appendChild(group);
+    }
+    
+    const line = document.createElement('div');
+    line.style.color = isError ? "#ef4444" : "#34d399";
+    line.style.paddingLeft = "8px"; // 살짝 들여쓰기
+    line.style.marginBottom = "4px";
+    line.innerText = msg;
+    lastLogContainer.appendChild(line);
+
+    box.scrollTop = box.scrollHeight;
+  }
 
   async function request(path, options = {}) {
-    const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
-    if (token) headers.Authorization = `Bearer ${token}`;
-    const response = await fetch(path, { ...options, headers });
-    const text = await response.text();
-    const body = text ? JSON.parse(text) : null;
-    document.getElementById("result").textContent = JSON.stringify(body, null, 2);
-    if (!response.ok) throw new Error(body?.message || "API request failed");
-    return body;
+    logAction("💻 " + (options.method || "GET") + " " + path);
+    try {
+      const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+      if (token) headers.Authorization = "Bearer " + token;
+      
+      const res = await fetch(path, { cache: 'no-store', ...options, headers });
+      const text = await res.text();
+      const body = text ? JSON.parse(text) : null;
+      
+      if (!res.ok) {
+          logAction("❌ ↳ " + res.status + " " + (body?.message || "에러"), true);
+          throw new Error(body?.message || "에러가 발생했습니다.");
+      }
+      logAction("✅ ↳ " + res.status + " OK");
+      return body;
+    } catch(e) {
+      if(e.message === "Failed to fetch") logAction("❌ 서버 연결 실패", true);
+      alert("에러: " + e.message);
+      throw e;
+    }
+  }
+
+  async function signup() {
+    startLog("📝 회원가입 요청 중...");
+    await request("/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({ 
+          name: document.getElementById("signupName").value, 
+          email: document.getElementById("signupEmail").value, 
+          password: document.getElementById("signupPassword").value,
+          role: document.getElementById("signupRole").value
+      })
+    });
+    logAction("✨ 회원가입 완료!");
+    alert("회원가입 성공! 이제 위쪽에서 로그인해주세요.");
+    document.getElementById("loginEmail").value = document.getElementById("signupEmail").value;
+    document.getElementById("loginPassword").value = document.getElementById("signupPassword").value;
   }
 
   async function login() {
+    startLog("🔑 로그인 요청 중...");
     const body = await request("/auth/login", {
       method: "POST",
-      body: JSON.stringify({
-        email: document.getElementById("loginEmail").value,
-        password: document.getElementById("loginPassword").value
-      })
+      body: JSON.stringify({ email: document.getElementById("loginEmail").value, password: document.getElementById("loginPassword").value })
     });
     token = body.token;
     localStorage.setItem("setuyeonToken", token);
+    document.getElementById("loginStatus").innerText = "(로그인 성공)";
+    logAction("🎉 로그인 성공!");
+    loadEvents();
   }
 
-  function createEvent() {
-    return request("/events", {
-      method: "POST",
-      body: JSON.stringify({
-        title: eventTitle.value,
-        description: eventDescription.value,
-        location: eventLocation.value,
-        eventDateTime: eventDateTime.value,
-        capacity: Number(eventCapacity.value)
-      })
+  // Event Management
+  async function loadEvents() {
+    startLog("📋 행사 목록 조회 중...");
+    const events = await request("/events", { method: "GET" });
+    logAction("✅ 행사 목록 조회 완료 (" + events.length + "개)");
+    const grid = document.getElementById("eventGrid");
+    grid.innerHTML = "";
+    
+    if(!events || events.length === 0) {
+        grid.innerHTML = "<p style='color:var(--text-muted);'>등록된 행사가 없습니다.</p>";
+        return;
+    }
+
+    events.forEach(ev => {
+      const card = document.createElement('div');
+      card.className = "event-card";
+      
+      // Escape strings
+      const eTitle = ev.title.replace(/'/g, "\'").replace(/"/g, "&quot;");
+      const eDesc = ev.description.replace(/'/g, "\'").replace(/"/g, "&quot;");
+      const eLoc = ev.location.replace(/'/g, "\'").replace(/"/g, "&quot;");
+      const eDate = ev.eventDateTime;
+      
+      card.innerHTML = `
+        <div class="event-badge">${ev.status}</div>
+        <h3>${ev.title}</h3>
+        <p>📍 ${ev.location}</p>
+        <p>🕒 ${ev.eventDateTime.replace('T', ' ')}</p>
+        <p>👥 정원: ${ev.capacity}명</p>
+        <div class="desc">${ev.description}</div>
+        
+        <div class="card-section">
+            <h4>⚙️ 관리 권한 (ADMIN / STAFF)</h4>
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+                <button class="outline" style="padding:4px 0;" onclick="updateEventStatus(${ev.id}, 'OPEN')">상태 OPEN</button>
+                <button class="outline" style="padding:4px 0;" onclick="updateEventStatus(${ev.id}, 'CLOSED')">상태 CLOSED</button>
+                <button class="outline" style="padding:4px 0;" onclick="updateEventStatus(${ev.id}, 'COMPLETED')">상태 COMPLETED</button>
+            </div>
+            <div class="event-actions full" style="margin-top:0;">
+                <button class="outline" onclick="openApplicants(${ev.id})">👥 신청자 관리</button>
+            </div>
+            <div class="event-actions" style="margin-top:8px;">
+                <button class="outline" onclick="openAttendances(${ev.id})">✅ 출석자 목록</button>
+                <button class="outline" onclick="openFeedbacks(${ev.id})">📝 피드백 조회</button>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:8px;">
+                <button class="outline" onclick="issueAttendanceCode(${ev.id})">출석코드 발급</button>
+                <span id="code_${ev.id}" style="color:var(--primary); font-weight:bold; font-size:12px; margin:auto 0; padding-left:5px;"></span>
+            </div>
+            <div class="event-actions" style="margin-top:8px;">
+                <button class="outline" onclick="openEventModal(${ev.id}, '${eTitle}', '${eDesc}', '${eLoc}', '${eDate}', ${ev.capacity})">✏️ 행사 수정</button>
+                <button class="danger" style="padding:6px 0;" onclick="deleteEvent(${ev.id})">🗑️ 행사 삭제</button>
+            </div>
+        </div>
+
+        <div class="card-section">
+            <h4>👤 일반 유저 기능 (MEMBER)</h4>
+            <button class="success" style="margin-bottom:8px;" onclick="applyForEvent(${ev.id})">행사 참가 신청하기</button>
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+                <input id="attCode_${ev.id}" placeholder="출석코드 입력" style="margin:0;">
+                <button class="success" style="width:70px;" onclick="checkIn(${ev.id})">출석</button>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <input id="fbRating_${ev.id}" type="number" placeholder="평점(1~5)" style="margin:0; width:80px;" min="1" max="5">
+                <input id="fbContent_${ev.id}" placeholder="후기 작성" style="margin:0;">
+                <button class="success" style="width:70px;" onclick="createFeedback(${ev.id})">제출</button>
+            </div>
+        </div>
+      `;
+      grid.appendChild(card);
     });
   }
 
-  function getEvents() { return request("/events"); }
-  function updateEventStatus(status) {
-    return request(`/events/${eventId.value}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+  // Modals Base
+  function openModal(id) { document.getElementById(id).classList.add('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+  function openEventModal(id=null, title="", desc="", loc="", date="", cap=50) {
+    document.getElementById("eventModalTitle").innerText = id ? "행사 수정" : "새 행사 생성";
+    document.getElementById("modalEventId").value = id || "";
+    document.getElementById("mTitle").value = title;
+    document.getElementById("mDesc").value = desc;
+    document.getElementById("mLoc").value = loc;
+    document.getElementById("mDate").value = date ? date.substring(0,16) : "";
+    document.getElementById("mCap").value = cap;
+    openModal('eventModal');
   }
-  function applyEvent() { return request(`/events/${eventId.value}/applications`, { method: "POST" }); }
-  function getApplications() { return request(`/events/${eventId.value}/applications`); }
-  function approveApplication() { return request(`/applications/${applicationId.value}/approve`, { method: "PATCH" }); }
-  function rejectApplication() { return request(`/applications/${applicationId.value}/reject`, { method: "PATCH" }); }
-  async function issueAttendanceCode() {
-    const body = await request(`/events/${eventId.value}/attendance-code`, { method: "POST" });
-    attendanceCode.value = body.attendanceCode;
+
+  async function saveEvent() {
+    startLog("💾 행사 저장 요청 중...");
+    const id = document.getElementById("modalEventId").value;
+    const body = {
+        title: document.getElementById("mTitle").value,
+        description: document.getElementById("mDesc").value,
+        location: document.getElementById("mLoc").value,
+        eventDateTime: document.getElementById("mDate").value,
+        capacity: Number(document.getElementById("mCap").value)
+    };
+    if (id) {
+        await request("/api/admin/events/" + id, { method: "PUT", body: JSON.stringify(body) });
+        logAction("✏️ 행사 수정 완료!");
+        alert("수정되었습니다!");
+    } else {
+        await request("/events", { method: "POST", body: JSON.stringify(body) });
+        logAction("✨ 행사 생성 완료!");
+        alert("생성되었습니다!");
+    }
+    closeModal('eventModal');
+    loadEvents();
   }
-  function checkIn() {
-    return request(`/events/${eventId.value}/attendance`, {
-      method: "POST",
-      body: JSON.stringify({ code: attendanceCode.value })
+
+  async function deleteEvent(id) {
+    if(!confirm("정말 이 행사를 삭제하시겠습니까?")) return;
+    startLog("🗑️ 행사 삭제 요청 중...");
+    await request("/api/admin/events/" + id, { method: "DELETE" });
+    logAction("✅ 행사 삭제 완료!");
+    alert("삭제되었습니다.");
+    loadEvents();
+  }
+
+  async function updateEventStatus(eventId, status) {
+    startLog("⚙️ 상태 변경 요청 중 (" + status + ")...");
+    await request("/events/" + eventId + "/status", { method: "PATCH", body: JSON.stringify({ status }) });
+    logAction("✅ 상태 변경 완료!");
+    alert("행사 상태가 " + status + "(으)로 변경되었습니다.");
+    loadEvents();
+  }
+
+  async function issueAttendanceCode(eventId) {
+    startLog("🎟️ 출석 코드 발급 요청 중...");
+    const body = await request("/events/" + eventId + "/attendance-code", { method: "POST" });
+    logAction("✅ 출석 코드 발급 완료: " + body.attendanceCode);
+    document.getElementById("code_" + eventId).innerText = "발급된 코드: " + body.attendanceCode;
+  }
+
+  // List View Modals (Applicants, Attendances, Feedbacks)
+  async function renderListModal(title, fetchPath, renderCallback) {
+      startLog("🔍 " + title + " 데이터 조회 중...");
+      const listDiv = document.getElementById("listModalContent");
+      document.getElementById("listModalTitle").innerText = title;
+      
+      // Only show loading if modal is not already open (prevents flicker on refresh)
+      if (!document.getElementById('listModal').classList.contains('active')) {
+          listDiv.innerHTML = "<p>데이터를 불러오는 중입니다...</p>";
+          openModal('listModal');
+      }
+
+      const data = await request(fetchPath, { method: "GET" });
+      listDiv.innerHTML = "";
+      
+      if(!data || data.length === 0) {
+          listDiv.innerHTML = "<p style='color:var(--text-muted);'>조회된 데이터가 없습니다.</p>";
+          return;
+      }
+      data.forEach(item => listDiv.appendChild(renderCallback(item)));
+  }
+
+  async function openApplicants(eventId) {
+      await renderListModal("👥 신청자 관리", "/events/" + eventId + "/applications", (app) => {
+          const div = document.createElement('div');
+          div.className = "list-item";
+          div.innerHTML = `
+              <div class="list-info">
+                  <strong>${app.memberName} (${app.memberEmail})</strong>
+                  <span>상태: ${app.status}</span>
+              </div>
+              <div class="list-actions">
+                  <button class="success" onclick="updateApp(${app.id}, 'approve', ${eventId})">승인</button>
+                  <button class="danger" onclick="updateApp(${app.id}, 'reject', ${eventId})">반려</button>
+              </div>
+          `;
+          return div;
+      });
+  }
+
+  async function updateApp(appId, action, eventId) {
+      startLog("⚙️ 신청자 상태 업데이트 중...");
+      await request("/applications/" + appId + "/" + action, { method: "PATCH" });
+      openApplicants(eventId); // Refresh modal seamlessly
+  }
+
+  async function openAttendances(eventId) {
+      await renderListModal("✅ 출석자 목록", "/api/admin/events/" + eventId + "/attendances", (att) => {
+          const div = document.createElement('div');
+          div.className = "list-item";
+          div.innerHTML = `
+              <div class="list-info">
+                  <strong>${att.member_name} (${att.member_email})</strong>
+                  <span class="sub-text">출석 시간: ${att.check_in_time.replace('T', ' ')}</span>
+              </div>
+          `;
+          return div;
+      });
+  }
+
+  async function openFeedbacks(eventId) {
+      await renderListModal("📝 피드백 조회", "/api/admin/events/" + eventId + "/feedbacks", (fb) => {
+          const div = document.createElement('div');
+          div.className = "list-item";
+          
+          let stars = '⭐'.repeat(fb.rating);
+          
+          div.innerHTML = `
+              <div class="list-info">
+                  <strong>${fb.member_name} ${stars} (${fb.rating}점)</strong>
+                  <span class="sub-text">${fb.content}</span>
+              </div>
+          `;
+          return div;
+      });
+  }
+
+  // Member User Logic
+  async function applyForEvent(id) {
+      startLog("🙋 참가 신청 요청 중...");
+      await request("/events/" + id + "/applications", { method: "POST" });
+      logAction("✅ 참가 신청 완료!");
+      alert("행사 신청이 완료되었습니다!");
+  }
+
+  async function checkIn(eventId) {
+    startLog("✔️ 출석 인증 요청 중...");
+    const code = document.getElementById("attCode_" + eventId).value;
+    await request("/events/" + eventId + "/attendance", { method: "POST", body: JSON.stringify({ code: code }) });
+    logAction("✅ 출석 인증 완료!");
+    alert("출석이 완료되었습니다!");
+  }
+
+  async function createFeedback(eventId) {
+    startLog("📝 피드백 제출 중...");
+    await request("/events/" + eventId + "/feedback", { 
+        method: "POST", 
+        body: JSON.stringify({ 
+            rating: Number(document.getElementById("fbRating_" + eventId).value), 
+            content: document.getElementById("fbContent_" + eventId).value 
+        }) 
     });
+    logAction("✅ 피드백 제출 완료!");
+    alert("피드백이 등록되었습니다.");
   }
-  function createFeedback() {
-    return request(`/events/${eventId.value}/feedback`, {
-      method: "POST",
-      body: JSON.stringify({ rating: Number(rating.value), content: feedbackContent.value })
-    });
-  }
-  function getDashboard() { return request("/dashboard"); }
+
+  // Init
+  window.onload = () => {
+      if(token) loadEvents();
+  };
 </script>
 </body>
 </html>
