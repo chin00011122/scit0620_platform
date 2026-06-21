@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>세투연 행사 운영 플랫폼 MVP</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f6f7fb; color: #202124; }
+    header { padding: 20px 28px; background: #111827; color: white; }
+    main { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; padding: 20px; }
+    section { background: white; border: 1px solid #ddd; border-radius: 8px; padding: 16px; }
+    h1 { margin: 0; font-size: 24px; }
+    h2 { margin-top: 0; font-size: 18px; }
+    label { display: block; margin-top: 10px; font-size: 13px; font-weight: 700; }
+    input, textarea, select, button { box-sizing: border-box; width: 100%; margin-top: 6px; padding: 9px; border: 1px solid #c7ccd1; border-radius: 6px; font-size: 14px; }
+    button { cursor: pointer; border: 0; background: #2563eb; color: white; font-weight: 700; }
+    button.secondary { background: #4b5563; }
+    button.danger { background: #dc2626; }
+    pre { overflow: auto; background: #111827; color: #d1d5db; padding: 12px; border-radius: 6px; min-height: 120px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .hint { color: #666; font-size: 13px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>세투연 행사 운영 플랫폼 MVP</h1>
+  <p class="hint">시연 흐름: 로그인 -> 행사 생성 -> 행사 신청 -> 승인/반려 -> 출석 -> 피드백 -> 대시보드</p>
+</header>
+<main>
+  <section>
+    <h2>1. 로그인</h2>
+    <p class="hint">샘플 계정: admin@setuyeon.kr / staff@setuyeon.kr / member@setuyeon.kr, 비밀번호 password123!</p>
+    <label>이메일</label>
+    <input id="loginEmail" value="admin@setuyeon.kr">
+    <label>비밀번호</label>
+    <input id="loginPassword" type="password" value="password123!">
+    <button onclick="login()">로그인</button>
+  </section>
+
+  <section>
+    <h2>2. 행사 생성 / 조회</h2>
+    <label>행사명</label>
+    <input id="eventTitle" value="모의투자대회 설명회">
+    <label>설명</label>
+    <textarea id="eventDescription">세투연 모의투자대회 참가 방법과 리서치 제출 방식을 안내합니다.</textarea>
+    <label>장소</label>
+    <input id="eventLocation" value="세종대학교 학생회관 세미나실">
+    <label>일시</label>
+    <input id="eventDateTime" value="2026-07-03T19:00:00">
+    <label>정원</label>
+    <input id="eventCapacity" type="number" value="50">
+    <div class="row">
+      <button onclick="createEvent()">행사 생성</button>
+      <button class="secondary" onclick="getEvents()">행사 조회</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. 상태 / 신청 / 승인</h2>
+    <label>행사 ID</label>
+    <input id="eventId" value="1">
+    <label>신청 ID</label>
+    <input id="applicationId" value="1">
+    <div class="row">
+      <button onclick="updateEventStatus('OPEN')">모집중 전환</button>
+      <button onclick="applyEvent()">행사 신청</button>
+    </div>
+    <div class="row">
+      <button onclick="getApplications()">신청자 조회</button>
+      <button onclick="approveApplication()">승인</button>
+    </div>
+    <button class="danger" onclick="rejectApplication()">반려</button>
+  </section>
+
+  <section>
+    <h2>4. 출석 / 피드백</h2>
+    <label>출석 코드</label>
+    <input id="attendanceCode">
+    <div class="row">
+      <button onclick="issueAttendanceCode()">코드 발급</button>
+      <button onclick="checkIn()">출석</button>
+    </div>
+    <label>평점</label>
+    <input id="rating" type="number" value="5">
+    <label>피드백</label>
+    <textarea id="feedbackContent">기업분석 사례가 실제 투자 의사결정과 연결되어 유익했습니다.</textarea>
+    <button onclick="createFeedback()">피드백 작성</button>
+  </section>
+
+  <section>
+    <h2>5. 대시보드</h2>
+    <button onclick="getDashboard()">대시보드 조회</button>
+    <p class="hint">ADMIN 계정으로 로그인해야 조회됩니다.</p>
+  </section>
+
+  <section>
+    <h2>응답</h2>
+    <pre id="result">API 응답이 여기에 표시됩니다.</pre>
+  </section>
+</main>
+
+<script>
+  let token = localStorage.getItem("setuyeonToken") || "";
+
+  async function request(path, options = {}) {
+    const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const response = await fetch(path, { ...options, headers });
+    const text = await response.text();
+    const body = text ? JSON.parse(text) : null;
+    document.getElementById("result").textContent = JSON.stringify(body, null, 2);
+    if (!response.ok) throw new Error(body?.message || "API request failed");
+    return body;
+  }
+
+  async function login() {
+    const body = await request("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        email: document.getElementById("loginEmail").value,
+        password: document.getElementById("loginPassword").value
+      })
+    });
+    token = body.token;
+    localStorage.setItem("setuyeonToken", token);
+  }
+
+  function createEvent() {
+    return request("/events", {
+      method: "POST",
+      body: JSON.stringify({
+        title: eventTitle.value,
+        description: eventDescription.value,
+        location: eventLocation.value,
+        eventDateTime: eventDateTime.value,
+        capacity: Number(eventCapacity.value)
+      })
+    });
+  }
+
+  function getEvents() { return request("/events"); }
+  function updateEventStatus(status) {
+    return request(`/events/${eventId.value}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+  }
+  function applyEvent() { return request(`/events/${eventId.value}/applications`, { method: "POST" }); }
+  function getApplications() { return request(`/events/${eventId.value}/applications`); }
+  function approveApplication() { return request(`/applications/${applicationId.value}/approve`, { method: "PATCH" }); }
+  function rejectApplication() { return request(`/applications/${applicationId.value}/reject`, { method: "PATCH" }); }
+  async function issueAttendanceCode() {
+    const body = await request(`/events/${eventId.value}/attendance-code`, { method: "POST" });
+    attendanceCode.value = body.attendanceCode;
+  }
+  function checkIn() {
+    return request(`/events/${eventId.value}/attendance`, {
+      method: "POST",
+      body: JSON.stringify({ code: attendanceCode.value })
+    });
+  }
+  function createFeedback() {
+    return request(`/events/${eventId.value}/feedback`, {
+      method: "POST",
+      body: JSON.stringify({ rating: Number(rating.value), content: feedbackContent.value })
+    });
+  }
+  function getDashboard() { return request("/dashboard"); }
+</script>
+</body>
+</html>

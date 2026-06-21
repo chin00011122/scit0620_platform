@@ -17,4 +17,8 @@ public interface EventApplicationRepository extends JpaRepository<EventApplicati
 	List<EventApplication> findByEvent(Event event);
 
 	long countByStatus(ApplicationStatus status);
+
+	long countByEvent(Event event);
+
+	long countByEventAndStatus(Event event, ApplicationStatus status);
 }

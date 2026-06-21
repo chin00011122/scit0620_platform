@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
 	boolean existsByEventAndMember(Event event, User member);
+
+	long countByEvent(Event event);
 }

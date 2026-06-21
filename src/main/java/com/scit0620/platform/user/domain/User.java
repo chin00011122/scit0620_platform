@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
+// DB의 사용자 테이블이다. PostgreSQL에서 user는 예약어로 충돌할 수 있어 users라는 이름을 쓴다.
 @Table(name = "users")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class User {
@@ -31,6 +32,7 @@ public class User {
 	@Column(nullable = false)
 	private String password;
 
+	// MEMBER, STAFF, ADMIN 중 하나만 저장되도록 enum으로 제한한다.
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private Role role;
@@ -40,5 +42,9 @@ public class User {
 		this.email = email;
 		this.password = password;
 		this.role = role;
+	}
+
+	public boolean hasRole(Role role) {
+		return this.role == role;
 	}
 }

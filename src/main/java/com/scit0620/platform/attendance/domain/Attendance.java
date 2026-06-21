@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
+// 행사 출석 기록이다. 같은 회원이 같은 행사에 중복 출석하지 못하게 unique 제약을 둔다.
 @Table(
 		name = "attendances",
 		uniqueConstraints = @UniqueConstraint(name = "uk_attendance_event_member", columnNames = {
@@ -32,10 +33,12 @@ public class Attendance {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	// 출석은 반드시 특정 행사에 속한다.
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "event_id", nullable = false)
 	private Event event;
 
+	// 출석한 회원이다. 승인 여부 검사는 Attendance 생성 전에 Service에서 처리한다.
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id", nullable = false)
 	private User member;

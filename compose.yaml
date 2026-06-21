@@ -1,5 +1,6 @@
 services:
   postgres:
+    # 로컬 개발용 PostgreSQL 컨테이너다. 실제 서비스 DB와 분리해서 실행한다.
     image: postgres:16
     container_name: setuyeon-platform-postgres
     environment:
