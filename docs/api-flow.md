@@ -23,9 +23,9 @@
 
 | 역할 | 이메일 | 비밀번호 |
 | --- | --- | --- |
-| ADMIN | admin@setuyeon.kr | password123! |
-| STAFF | staff@setuyeon.kr | password123! |
-| MEMBER | member@setuyeon.kr | password123! |
+| ADMIN | admin | 0000 |
+| STAFF | staff | 0000 |
+| MEMBER | member | 0000 |
 
 ## 요청 흐름 설명
 
@@ -52,8 +52,8 @@ POST /auth/login
 Content-Type: application/json
 
 {
-  "email": "admin@setuyeon.kr",
-  "password": "password123!"
+  "email": "admin",
+  "password": "0000"
 }
 ```
 

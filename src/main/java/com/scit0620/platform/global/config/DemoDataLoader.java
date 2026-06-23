@@ -27,18 +27,20 @@ public class DemoDataLoader implements CommandLineRunner {
 	@Override
 	@Transactional
 	public void run(String... args) {
-		if (userRepository.existsByEmail("admin@setuyeon.kr")) {
+		if (userRepository.existsByEmail("admin")) {
 			return;
 		}
 
+		String password = passwordEncoder.encode("0000");
+
 		User admin = userRepository.save(new User(
 				"세투연 회장",
-				"admin@setuyeon.kr",
-				passwordEncoder.encode("password123!"),
+				"admin",
+				password,
 				Role.ADMIN
 		));
-		userRepository.save(new User("운영진 김세미", "staff@setuyeon.kr", passwordEncoder.encode("password123!"), Role.STAFF));
-		userRepository.save(new User("부원 이투자", "member@setuyeon.kr", passwordEncoder.encode("password123!"), Role.MEMBER));
+		userRepository.save(new User("운영진 김세미", "staff", password, Role.STAFF));
+		userRepository.save(new User("부원 이투자", "member", password, Role.MEMBER));
 
 		Event ot = new Event(
 				"세투연 신입 부원 OT",

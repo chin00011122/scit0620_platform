@@ -69,7 +69,7 @@ public class CustomEventAdminService {
 			throw new BusinessException(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.");
 		}
 		return jdbcTemplate.queryForList(
-			"SELECT a.id, a.check_in_time, u.name as member_name, u.email as member_email " +
+			"SELECT a.id, a.checked_in_at as check_in_time, u.name as member_name, u.email as member_email " +
 			"FROM attendances a JOIN users u ON a.member_id = u.id " +
 			"WHERE a.event_id = ?", eventId);
 	}
