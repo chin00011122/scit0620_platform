@@ -32,7 +32,7 @@ public class User {
 	@Column(nullable = false)
 	private String password;
 
-	// MEMBER, STAFF, ADMIN 중 하나만 저장되도록 enum으로 제한한다.
+	// MEMBER, STAFF, ADMIN 중 하나만 저장되도록 enum으로 제한
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private Role role;

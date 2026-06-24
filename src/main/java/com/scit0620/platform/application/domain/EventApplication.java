@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-// 회원의 행사 신청 테이블이다. 한 회원은 같은 행사에 한 번만 신청할 수 있다.
+// 회원의 행사 신청 테이블. 한 회원은 같은 행사에 한 번만 신청 가능
 @Table(
 		name = "event_applications",
 		uniqueConstraints = @UniqueConstraint(name = "uk_event_application_event_member", columnNames = {
@@ -35,17 +35,17 @@ public class EventApplication {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	// 여러 신청이 하나의 행사에 속하므로 ManyToOne 관계다.
+	// 여러 신청이 하나의 행사에 속하므로 ManyToOne 관계.
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "event_id", nullable = false)
 	private Event event;
 
-	// 여러 신청이 하나의 회원에 속하므로 ManyToOne 관계다.
+	// 여러 신청이 하나의 회원에 속하므로 ManyToOne 관계.
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id", nullable = false)
 	private User member;
 
-	// 신청은 처음에 PENDING으로 생성되고 운영진이 APPROVED 또는 REJECTED로 변경한다.
+	// 신청은 처음에 PENDING으로 생성되고 운영진이 APPROVED 또는 REJECTED로 변경.
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
 	private ApplicationStatus status;
@@ -62,7 +62,7 @@ public class EventApplication {
 		this.appliedAt = LocalDateTime.now();
 	}
 
-	// 승인 처리 시 상태와 결정 시각을 함께 기록한다.
+	// 승인 처리 시 상태와 결정 시각을 함께 기록.
 	public void approve() {
 		this.status = ApplicationStatus.APPROVED;
 		this.decidedAt = LocalDateTime.now();
