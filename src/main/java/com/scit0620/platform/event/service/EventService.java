@@ -83,9 +83,19 @@ public class EventService {
 		requireStaffOrAdmin(user);
 
 		Event event = getEventEntity(eventId);
+
+		//이미 발급된 코드가 있고, 아직 만료시간 30분 전이라면 그 코드를 그대로 재사용
+		if (event.getAttendanceCode() != null
+				&& event.getAttendanceCodeExpiresAt() != null
+				&& event.getAttendanceCodeExpiresAt().isAfter(LocalDateTime.now())) {
+			return new AttendanceCodeResponse(event.getId(), event.getAttendanceCode(), event.getAttendanceCodeExpiresAt());
+		}
+
+		// 만료되었거나 아예 없다면 새로 발급
 		String code = String.valueOf(ThreadLocalRandom.current().nextInt(100000, 1000000));
 		LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(30);
 		event.issueAttendanceCode(code, expiresAt);
+
 		return new AttendanceCodeResponse(event.getId(), code, expiresAt);
 	}
 
@@ -104,7 +114,6 @@ public class EventService {
 			throw new BusinessException(HttpStatus.FORBIDDEN, "관리자만 처리할 수 있습니다.");
 		}
 	}
-
 	private void requireStaffOrAdmin(User user) {
 		if (!user.hasRole(Role.STAFF) && !user.hasRole(Role.ADMIN)) {
 			throw new BusinessException(HttpStatus.FORBIDDEN, "운영진 이상만 처리할 수 있습니다.");
