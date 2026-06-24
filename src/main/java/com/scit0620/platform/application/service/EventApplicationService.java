@@ -30,14 +30,16 @@ public class EventApplicationService {
 		this.userRepository = userRepository;
 	}
 
-	@Transactional
+	@Transactional //행사 신청
 	public EventApplicationResponse apply(Long eventId, UserPrincipal principal) {
 		User member = getUser(principal.id());
+		//일반 부원 권한 확인
 		if (!member.hasRole(Role.MEMBER)) {
 			throw new BusinessException(HttpStatus.FORBIDDEN, "일반 부원만 행사에 신청할 수 있습니다.");
 		}
 
 		Event event = eventService.getEventEntity(eventId);
+		//행사가 모집중인지 확인
 		if (!event.isOpen()) {
 			throw new BusinessException(HttpStatus.BAD_REQUEST, "모집중인 행사만 신청할 수 있습니다.");
 		}
@@ -49,10 +51,10 @@ public class EventApplicationService {
 		return EventApplicationResponse.from(applicationRepository.save(application));
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = true) //행사 신청 조회(누가 신청했는지 확인)
 	public List<EventApplicationResponse> getApplications(Long eventId, UserPrincipal principal) {
 		User user = getUser(principal.id());
-		requireStaffOrAdmin(user);
+		requireStaffOrAdmin(user); // 운영진 이상만 조회 가능
 
 		Event event = eventService.getEventEntity(eventId);
 		return applicationRepository.findByEvent(event).stream()
@@ -60,25 +62,25 @@ public class EventApplicationService {
 				.toList();
 	}
 
-	@Transactional
+	@Transactional //행사 승인
 	public EventApplicationResponse approve(Long applicationId, UserPrincipal principal) {
 		User user = getUser(principal.id());
-		requireStaffOrAdmin(user);
+		requireStaffOrAdmin(user); // 운영진 이상만
 
 		EventApplication application = getApplication(applicationId);
-		requirePending(application);
-		application.approve();
+		requirePending(application);    //대기중pending인지 확인
+		application.approve();   //승인
 		return EventApplicationResponse.from(application);
 	}
 
-	@Transactional
+	@Transactional  //행사 신청 반려
 	public EventApplicationResponse reject(Long applicationId, UserPrincipal principal) {
 		User user = getUser(principal.id());
-		requireStaffOrAdmin(user);
+		requireStaffOrAdmin(user); // 운영진 이상만
 
 		EventApplication application = getApplication(applicationId);
-		requirePending(application);
-		application.reject();
+		requirePending(application);  //대기중pending인지 확인
+		application.reject(); //신청 반려
 		return EventApplicationResponse.from(application);
 	}
 

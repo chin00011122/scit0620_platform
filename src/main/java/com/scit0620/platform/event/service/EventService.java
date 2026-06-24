@@ -25,6 +25,7 @@ public class EventService {
 	private final EventRepository eventRepository;
 	private final UserRepository userRepository;
 
+	//생성자 의존성 주입
 	public EventService(EventRepository eventRepository, UserRepository userRepository) {
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
@@ -33,7 +34,7 @@ public class EventService {
 	@Transactional
 	public EventResponse createEvent(EventCreateRequest request, UserPrincipal principal) {
 		User creator = getUser(principal.id());
-		requireAdmin(creator);
+		requireAdmin(creator); //관리자 권한 검사
 
 		Event event = new Event(
 				request.title(),
@@ -43,11 +44,11 @@ public class EventService {
 				request.capacity(),
 				creator
 		);
-		return EventResponse.from(eventRepository.save(event));
+		return EventResponse.from(eventRepository.save(event)); //이벤트 저장 및 반환
 	}
 
-	@Transactional(readOnly = true)
-	public List<EventResponse> getEvents() {
+	@Transactional(readOnly = true) //일기만 함. 성능 최적화
+	public List<EventResponse> getEvents() {  //행사 조회
 		return eventRepository.findAll().stream()
 				.map(EventResponse::from)
 				.toList();
@@ -58,7 +59,7 @@ public class EventService {
 		return EventResponse.from(getEventEntity(eventId));
 	}
 
-	@Transactional
+	@Transactional //행사 상태 수정
 	public EventResponse updateStatus(Long eventId, EventStatusUpdateRequest request, UserPrincipal principal) {
 		User user = getUser(principal.id());
 		requireAdmin(user);
@@ -77,7 +78,7 @@ public class EventService {
 		return EventResponse.from(event);
 	}
 
-	@Transactional
+	@Transactional //출석코드 발급
 	public AttendanceCodeResponse issueAttendanceCode(Long eventId, UserPrincipal principal) {
 		User user = getUser(principal.id());
 		requireStaffOrAdmin(user);
@@ -100,21 +101,25 @@ public class EventService {
 	}
 
 	public Event getEventEntity(Long eventId) {
+		//ID로 행사를 찾고, 없으면 404 에러를 던짐
 		return eventRepository.findById(eventId)
 				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "행사를 찾을 수 없습니다."));
 	}
 
 	private User getUser(Long userId) {
+		//ID로 회원을 찾고, 없으면 404 에러를 던짐
 		return userRepository.findById(userId)
 				.orElseThrow(() -> new BusinessException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 	}
 
 	private void requireAdmin(User user) {
+		//사용자가 ADMIN 권한을 가지고 있지 않으면 403(권한 없음) 에러를 던짐
 		if (!user.hasRole(Role.ADMIN)) {
 			throw new BusinessException(HttpStatus.FORBIDDEN, "관리자만 처리할 수 있습니다.");
 		}
 	}
 	private void requireStaffOrAdmin(User user) {
+		//사용자가 STAFF와 ADMIN 둘 다 아니면 403 에러를 던짐
 		if (!user.hasRole(Role.STAFF) && !user.hasRole(Role.ADMIN)) {
 			throw new BusinessException(HttpStatus.FORBIDDEN, "운영진 이상만 처리할 수 있습니다.");
 		}

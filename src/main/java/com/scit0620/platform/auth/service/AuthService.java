@@ -28,6 +28,7 @@ public class AuthService {
 
 	@Transactional
 	public AuthResponse signup(SignupRequest request) {
+		//중복 검사
 		if (userRepository.existsByEmail(request.email())) {
 			throw new BusinessException(HttpStatus.CONFLICT, "이미 가입된 이메일입니다.");
 		}
@@ -43,12 +44,12 @@ public class AuthService {
 		return createResponse(savedUser);
 	}
 
-	@Transactional(readOnly = true)
+	@Transactional(readOnly = true) //데이터를 읽기만 함. 성능 최적화. 속도 up
 	public AuthResponse login(LoginRequest request) {
 		User user = userRepository.findByEmail(request.email())
 				.orElseThrow(() -> new BusinessException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다."));
 
-		if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+		if (!passwordEncoder.matches(request.password(), user.getPassword())) { //비밀번호 비교
 			throw new BusinessException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다.");
 		}
 
@@ -57,6 +58,8 @@ public class AuthService {
 
 	private AuthResponse createResponse(User user) {
 		String token = jwtTokenProvider.createToken(user.getId(), user.getEmail(), user.getRole());
+		// jwtTokenProvider에 유저의 ID, 이메일, 직급(Role)을 넣고 JWT 토큰을 만듦
 		return new AuthResponse(token, user.getId(), user.getName(), user.getEmail(), user.getRole());
+		//프론트엔드가 받을 수 있게 토큰과 유저 기본 정보를 AuthResponse에 담아 return
 	}
 }

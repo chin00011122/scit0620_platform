@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-// 행사 피드백 테이블이다. MVP에서는 회원당 행사별 피드백을 한 번만 허용한다.
+// 행사 피드백 테이블이다. MVP에서는 회원당 행사별 피드백을 한 번만 허용
 @Table(
 		name = "feedbacks",
 		uniqueConstraints = @UniqueConstraint(name = "uk_feedback_event_member", columnNames = {
@@ -33,12 +33,12 @@ public class Feedback {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	// 피드백은 특정 행사에 대한 평가다.
+	// 피드백은 특정 행사에 대한 평가
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "event_id", nullable = false)
 	private Event event;
 
-	// 피드백을 작성한 회원이다.
+	// 피드백을 작성한 회원
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "member_id", nullable = false)
 	private User member;
